@@ -1,280 +1,1436 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prototipo Interactivo - Seguimiento Proyectos SENA</title>
+    <title>SENA ADSO | Plataforma de Seguimiento de Proyectos - Ficha 3413988</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        sena: {
+                            DEFAULT: '#39A900',
+                            dark: '#2d8600',
+                            light: '#4cd309',
+                            glow: 'rgba(57, 169, 0, 0.25)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
+        :root {
+            color-scheme: dark;
+        }
         .view { display: none; }
-        .view.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-        .nav-item.active { background-color: #16a34a; color: white; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1f2937; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .view.active {
+            display: block;
+            animation: viewEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes viewEnter {
+            from { opacity: 0; transform: translateY(8px) scale(0.995); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .nav-item.active {
+            background: linear-gradient(135deg, #39A900 0%, #16a34a 100%);
+            color: #ffffff;
+            box-shadow: 0 8px 20px -4px rgba(57, 169, 0, 0.45);
+        }
+        .kanban-col.drag-over {
+            border-color: #39A900 !important;
+            background-color: rgba(57, 169, 0, 0.08) !important;
+        }
+        .kanban-card {
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+        .kanban-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.45);
+        }
+        .kanban-card.dragging {
+            opacity: 0.45;
+            transform: scale(0.97) rotate(1deg);
+        }
+        dialog::backdrop {
+            background: rgba(3, 7, 18, 0.75);
+            backdrop-filter: blur(6px);
+        }
+        dialog[open] {
+            animation: dialogZoom 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes dialogZoom {
+            from { opacity: 0; transform: scale(0.95) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans flex h-screen overflow-hidden">
-    
-    <!-- BARRA LATERAL (SIDEBAR) -->
-    <aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col shadow-xl z-10">
-        <div class="p-6 border-b border-gray-700 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-green-900/50">S</div>
-            <div>
-                <h2 class="text-sm font-bold text-green-500 uppercase tracking-wider">SENA ADSO</h2>
-                <p class="text-xs text-gray-400">Proyectos</p>
+<body class="bg-slate-950 text-slate-100 font-sans flex h-screen overflow-hidden selection:bg-sena selection:text-white">
+
+    <!-- SIDEBAR -->
+    <aside class="w-72 bg-slate-900/95 border-r border-slate-800/80 flex flex-col justify-between shadow-2xl z-20 shrink-0">
+        <div>
+            <!-- Brand Header -->
+            <div class="p-6 border-b border-slate-800/80 flex items-center justify-between">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-sena to-emerald-600 flex items-center justify-center font-extrabold text-white text-xl shadow-lg shadow-sena/30 ring-1 ring-white/20">
+                        S
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-sm font-extrabold text-white tracking-wide uppercase">SENA ADSO</h2>
+                            <span class="text-[10px] font-bold bg-sena/20 text-green-400 border border-sena/30 px-1.5 py-0.5 rounded-md">v2.0</span>
+                        </div>
+                        <p class="text-xs text-slate-400 font-medium">Gestión de Proyectos</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Profile & Role Switcher -->
+            <div class="p-5 border-b border-slate-800/80 bg-slate-900/50">
+                <div class="flex items-center gap-3.5">
+                    <div class="relative">
+                        <img src="https://ui-avatars.com/api/?name=Fayber+Diaz&background=39A900&color=fff&bold=true" alt="Fayber Díaz" class="w-12 h-12 rounded-xl ring-2 ring-sena/50 shadow-md object-cover">
+                        <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full" title="En línea"></span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-bold text-white truncate">Fayber Estyben Díaz</p>
+                        <p id="current-role-badge" class="text-xs text-emerald-400 font-medium truncate">Aprendiz Líder • Ficha 3413988</p>
+                    </div>
+                </div>
+                <div class="mt-3.5 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Modo vista:</span>
+                    <button onclick="toggleRole()" id="role-switch-btn" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1 rounded-lg font-semibold transition flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span id="role-switch-text">Aprendiz / Admin</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="px-4 pt-4 pb-2">
+                <p class="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Módulos Principales</p>
+                <nav class="space-y-1.5">
+                    <button onclick="switchView('dashboard', this)" data-view="dashboard" class="nav-item active w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold text-sm transition duration-200">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                            1. Dashboard General
+                        </span>
+                    </button>
+
+                    <button onclick="switchView('equipo', this)" data-view="equipo" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white font-semibold text-sm transition duration-200">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            2. Mi Equipo
+                        </span>
+                        <span id="nav-badge-equipo" class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full font-bold">3</span>
+                    </button>
+
+                    <button onclick="switchView('kanban', this)" data-view="kanban" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white font-semibold text-sm transition duration-200">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+                            3. Tablero Kanban
+                        </span>
+                        <span id="nav-badge-kanban" class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full font-bold">5</span>
+                    </button>
+
+                    <button onclick="switchView('evidencias', this)" data-view="evidencias" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white font-semibold text-sm transition duration-200">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            4. Evidencias RAP
+                        </span>
+                        <span id="nav-badge-evidencias" class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full font-bold">3</span>
+                    </button>
+
+                    <button onclick="switchView('ia', this)" data-view="ia" class="nav-item w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white font-semibold text-sm transition duration-200">
+                        <span class="flex items-center gap-3">
+                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            5. Asistente IA
+                        </span>
+                        <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold">PRO</span>
+                    </button>
+                </nav>
             </div>
         </div>
-        <div class="p-6 border-b border-gray-700 flex items-center gap-4">
-            <img src="https://ui-avatars.com/api/?name=Fayber+Diaz&background=F2C18D&color=000&bold=true" class="w-12 h-12 rounded-full ring-2 ring-gray-600 shadow-md">
-            <div>
-                <p class="text-sm font-bold text-white">Fayber Díaz</p>
-                <p class="text-xs text-gray-400">Aprendiz / Admin</p>
+
+        <!-- Project Phase Progress Footer -->
+        <div class="p-4 m-4 rounded-xl bg-slate-800/60 border border-slate-700/70">
+            <div class="flex items-center justify-between text-xs mb-1.5">
+                <span class="font-bold text-slate-200">Fase Actual: Análisis</span>
+                <span id="sidebar-progress-text" class="text-emerald-400 font-bold">68%</span>
+            </div>
+            <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+                <div id="sidebar-progress-bar" class="h-full bg-gradient-to-r from-sena to-emerald-400 rounded-full transition-all duration-500" style="width: 68%"></div>
+            </div>
+            <div class="mt-3 flex items-center justify-between">
+                <span class="text-[11px] text-slate-400">Datos guardados localmente</span>
+                <button onclick="resetDemoData()" class="text-[11px] text-slate-400 hover:text-rose-400 underline transition" title="Restaurar datos originales">Reiniciar demo</button>
             </div>
         </div>
-        <nav class="flex-1 p-4 space-y-2 mt-2">
-            <button onclick="switchView('dashboard', this)" class="nav-item active w-full text-left px-4 py-3 rounded-lg hover:bg-gray-700 font-medium transition duration-200">1. Dashboard</button>
-            <button onclick="switchView('equipo', this)" class="nav-item w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 font-medium transition duration-200">2. Mi Equipo</button>
-            <button onclick="switchView('kanban', this)" class="nav-item w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 font-medium transition duration-200">3. Tablero Kanban</button>
-            <button onclick="switchView('evidencias', this)" class="nav-item w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 font-medium transition duration-200">4. Evidencias</button>
-            <button onclick="switchView('ia', this)" class="nav-item w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-700 font-medium transition duration-200">5. Asistente IA</button>
-        </nav>
     </aside>
 
-    <!-- ÁREA PRINCIPAL -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-gray-900 relative">
-        <header class="bg-gray-800 border-b border-gray-700 py-5 px-8 sticky top-0 z-10 shadow-sm">
-            <h1 class="text-2xl font-bold text-gray-100">Ficha 3413988 - ADSO</h1>
-            <p class="text-sm text-gray-400 mt-1">Plataforma de Seguimiento y Evaluación de Proyectos SENA</p>
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-950 relative">
+        
+        <!-- Sticky Topbar -->
+        <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 py-4 px-8 sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2.5">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sena/15 text-emerald-400 border border-sena/30">Ficha 3413988</span>
+                    <h1 class="text-xl font-extrabold text-white tracking-tight">Tecnólogo en Análisis y Desarrollo de Software (ADSO)</h1>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">Proyecto Formativo: Plataforma de Seguimiento y Evaluación de Proyectos SENA</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <!-- Quick Action Button -->
+                <button onclick="openModal('modal-new-task')" class="bg-sena hover:bg-sena-dark text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-lg shadow-sena/25 transition flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    Nueva Tarea
+                </button>
+                <button onclick="openModal('modal-new-evidence')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    Subir Evidencia
+                </button>
+            </div>
         </header>
 
-        <div class="p-8 max-w-7xl mx-auto w-full">
-            
-            <!-- VISTA 1: DASHBOARD -->
-            <div id="dashboard" class="view active">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-md">
-                        <p class="text-sm text-gray-400 font-medium">Total Aprendices</p>
-                        <p class="text-4xl font-bold mt-3 text-white">30</p>
+        <div class="p-8 max-w-7xl mx-auto w-full flex-1">
+
+            <!-- ==========================================
+                 VISTA 1: DASHBOARD GENERAL
+                 ========================================== -->
+            <section id="dashboard" class="view active space-y-8">
+                
+                <!-- Cronograma de Fases SENA -->
+                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Ruta Metodológica del Proyecto Formativo</h2>
+                            <p class="text-xs text-slate-400">Estado de avance por fases del ciclo de vida del software</p>
+                        </div>
+                        <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full">Trimestre 2 en curso</span>
                     </div>
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-md">
-                        <p class="text-sm text-gray-400 font-medium">Proyectos Activos</p>
-                        <p class="text-4xl font-bold mt-3 text-blue-400">6</p>
-                    </div>
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-md border-l-4 border-l-yellow-500">
-                        <p class="text-sm text-gray-400 font-medium">Entregas Pendientes</p>
-                        <p class="text-4xl font-bold mt-3 text-yellow-500">4</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 font-extrabold flex items-center justify-center text-sm shrink-0">1</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-bold text-emerald-300">Fase 1: Análisis</p>
+                                <p class="text-[11px] text-slate-400 truncate">IEEE 830, Casos de Uso, BPMN</p>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-400">85%</span>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-blue-500 text-white font-extrabold flex items-center justify-center text-sm shrink-0">2</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-bold text-blue-300">Fase 2: Planeación</p>
+                                <p class="text-[11px] text-slate-400 truncate">Prototipado, MER, Arquitectura</p>
+                            </div>
+                            <span class="text-xs font-bold text-blue-400">45%</span>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/70 flex items-center gap-3 opacity-75">
+                            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-300 font-extrabold flex items-center justify-center text-sm shrink-0">3</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-bold text-slate-300">Fase 3: Ejecución</p>
+                                <p class="text-[11px] text-slate-400 truncate">Codificación Backend / Frontend</p>
+                            </div>
+                            <span class="text-xs font-bold text-slate-400">15%</span>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/70 flex items-center gap-3 opacity-60">
+                            <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-300 font-extrabold flex items-center justify-center text-sm shrink-0">4</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-bold text-slate-300">Fase 4: Evaluación</p>
+                                <p class="text-[11px] text-slate-400 truncate">Pruebas QA y Despliegue</p>
+                            </div>
+                            <span class="text-xs font-bold text-slate-400">0%</span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg overflow-hidden">
-                    <div class="p-5 border-b border-gray-700 bg-gray-800/80"><h2 class="font-semibold text-lg text-white">Equipos de Proyecto Activos</h2></div>
+                <!-- KPIs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Aprendices en Ficha</p>
+                            <p class="text-3xl font-extrabold text-white mt-2">30</p>
+                            <p class="text-xs text-emerald-400 mt-2 font-medium">100% asignados a equipos</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Proyectos Activos</p>
+                            <p id="kpi-projects-count" class="text-3xl font-extrabold text-blue-400 mt-2">4</p>
+                            <p class="text-xs text-slate-400 mt-2 font-medium">Células ágiles conformadas</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tareas en Kanban</p>
+                            <p id="kpi-tasks-count" class="text-3xl font-extrabold text-purple-400 mt-2">5</p>
+                            <p id="kpi-tasks-completed" class="text-xs text-purple-300 mt-2 font-medium">1 completadas</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 border-l-4 border-l-amber-500 p-5 rounded-2xl shadow-lg flex items-start justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Entregas / Evidencias</p>
+                            <p id="kpi-evidences-count" class="text-3xl font-extrabold text-amber-400 mt-2">3</p>
+                            <p class="text-xs text-amber-300/80 mt-2 font-medium">Evaluación por Resultados (RAP)</p>
+                        </div>
+                        <div class="p-3 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de Equipos de Proyecto Activos -->
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden">
+                    <div class="p-6 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <h2 class="font-bold text-lg text-white">Equipos de Proyecto Formativo</h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Monitoreo en tiempo real de entregas y tableros ágiles por grupo</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <input type="text" id="search-teams" oninput="renderTeamsTable()" placeholder="Buscar equipo o proyecto..." class="bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-sena w-60">
+                                <svg class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </div>
+                            <select id="filter-team-status" onchange="renderTeamsTable()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sena">
+                                <option value="ALL">Todos los estados</option>
+                                <option value="Al Día">Al Día</option>
+                                <option value="En Progreso">En Progreso</option>
+                                <option value="Riesgo Retraso">Riesgo Retraso</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left whitespace-nowrap">
-                            <thead class="bg-gray-900/50 text-gray-400 text-xs uppercase tracking-wider">
-                                <tr><th class="px-6 py-4">Equipo</th><th class="px-6 py-4">Proyecto Asignado</th><th class="px-6 py-4">Estado</th><th class="px-6 py-4 text-center">Acciones</th></tr>
+                            <thead class="bg-slate-950/60 text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="px-6 py-4">Célula / Equipo</th>
+                                    <th class="px-6 py-4">Proyecto Asignado</th>
+                                    <th class="px-6 py-4">Fase & Avance</th>
+                                    <th class="px-6 py-4">Estado</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-700">
-                                <tr class="bg-gray-800">
-                                    <td class="px-6 py-4 font-medium text-gray-200">Los Desarrolladores</td>
-                                    <td class="px-6 py-4 text-gray-300">Antojo Virtual</td>
-                                    <td class="px-6 py-4"><span class="bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full text-xs font-semibold">En Progreso</span></td>
-                                    <td class="px-6 py-4 text-center">
-                                        <button onclick="document.querySelectorAll('.nav-item')[2].click()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-md text-sm text-white">Ver Tablero</button>
-                                    </td>
-                                </tr>
-                                <tr class="bg-gray-800">
-                                    <td class="px-6 py-4 font-medium text-gray-200">Innovadores ADSO</td>
-                                    <td class="px-6 py-4 text-gray-300">Seguimiento Proyectos</td>
-                                    <td class="px-6 py-4"><span class="bg-green-500/10 text-green-400 border border-green-500/20 px-3 py-1 rounded-full text-xs font-semibold">En Progreso</span></td>
-                                    <td class="px-6 py-4 text-center">
-                                        <button onclick="document.querySelectorAll('.nav-item')[2].click()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded-md text-sm text-white">Ver Tablero</button>
-                                    </td>
-                                </tr>
+                            <tbody id="teams-table-body" class="divide-y divide-slate-800/80 text-sm">
+                                <!-- Renderizado dinámicamente -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- VISTA 2: MI EQUIPO -->
-            <div id="equipo" class="view">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-white">Equipo: Innovadores ADSO</h2>
-                    <button class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg font-medium text-sm text-white transition">Agregar Integrante</button>
+            <!-- ==========================================
+                 VISTA 2: MI EQUIPO
+                 ========================================== -->
+            <section id="equipo" class="view space-y-6">
+                <div class="flex flex-wrap justify-between items-center gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Célula Ágil #1</span>
+                        <h2 class="text-2xl font-extrabold text-white mt-0.5">Equipo: Innovadores ADSO</h2>
+                        <p class="text-xs text-slate-400 mt-1">Proyecto: Plataforma Web de Seguimiento y Evaluación de Proyectos SENA</p>
+                    </div>
+                    <button onclick="openModal('modal-new-member')" class="bg-sena hover:bg-sena-dark px-4 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg shadow-sena/25 transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                        Agregar Integrante
+                    </button>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-gray-800 p-6 rounded-xl border border-green-600/50 shadow-lg relative">
-                        <div class="absolute top-0 right-0 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Tú</div>
-                        <div class="flex items-center gap-5">
-                            <img src="https://ui-avatars.com/api/?name=Fayber+Diaz&background=F2C18D&color=000&bold=true" class="w-20 h-20 rounded-full">
-                            <div>
-                                <h3 class="font-bold text-xl text-white">Fayber Estyben Díaz</h3>
-                                <p class="text-sm text-green-400 font-medium">Líder de Proyecto / Full-Stack</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                        <div class="flex items-center gap-5">
-                            <img src="https://ui-avatars.com/api/?name=Luiger+Ledezma&background=random&color=fff" class="w-20 h-20 rounded-full">
-                            <div>
-                                <h3 class="font-bold text-xl text-white">Luiger Dalieth Ledezma</h3>
-                                <p class="text-sm text-blue-400 font-medium">Desarrollador Backend</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                        <div class="flex items-center gap-5">
-                            <img src="https://ui-avatars.com/api/?name=Sonia+Solorzano&background=random&color=fff" class="w-20 h-20 rounded-full">
-                            <div>
-                                <h3 class="font-bold text-xl text-white">Sonia Alexandra Solorzano</h3>
-                                <p class="text-sm text-purple-400 font-medium">Diseñadora UI/UX</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- VISTA 3: TABLERO KANBAN -->
-            <div id="kanban" class="view h-[calc(100vh-140px)] flex flex-col">
-                <h2 class="text-xl font-bold text-white mb-6">Tablero Kanban - Innovadores ADSO</h2>
-                <div class="flex gap-6 flex-1 overflow-hidden pb-4">
-                    <!-- Columna POR HACER -->
-                    <div class="flex-1 bg-gray-800/50 rounded-xl flex flex-col border border-gray-700" ondrop="drop(event)" ondragover="allowDrop(event)">
-                        <div class="p-4 border-b border-gray-700 bg-gray-800"><h3 class="font-bold text-sm text-gray-300">POR HACER</h3></div>
-                        <div class="p-4 flex-1 overflow-y-auto space-y-4">
-                            <div class="bg-gray-700 p-4 rounded-lg cursor-grab border-l-4 border-l-red-500 shadow-md" draggable="true" ondragstart="drag(event)" id="card-1">
-                                <h4 class="font-bold text-sm text-white mb-2">Configurar Express.js</h4>
-                                <p class="text-xs text-gray-400 mb-4">Inicializar servidor backend con Node.js y Express.</p>
-                                <span class="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded font-bold">Alta</span>
-                            </div>
-                        </div>
+                <div id="team-members-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Renderizado dinámicamente -->
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 VISTA 3: TABLERO KANBAN
+                 ========================================== -->
+            <section id="kanban" class="view space-y-5">
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900 p-5 rounded-2xl border border-slate-800">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-white">Tablero Kanban — Innovadores ADSO</h2>
+                        <p class="text-xs text-slate-400">Arrastra y suelta las tarjetas entre columnas para actualizar el estado en tiempo real</p>
                     </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <select id="kanban-filter-priority" onchange="renderKanban()" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sena">
+                            <option value="ALL">Todas las prioridades</option>
+                            <option value="Alta">Prioridad Alta</option>
+                            <option value="Media">Prioridad Media</option>
+                            <option value="Baja">Prioridad Baja</option>
+                        </select>
+                        <button onclick="openModal('modal-new-task')" class="bg-sena hover:bg-sena-dark text-white px-4 py-2 rounded-xl font-bold text-xs transition flex items-center gap-1.5">
+                            + Crear Tarea
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4 Columnas Kanban -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 min-h-[540px]">
                     
-                    <!-- Columna EN PROCESO -->
-                    <div class="flex-1 bg-gray-800/50 rounded-xl flex flex-col border border-gray-700" ondrop="drop(event)" ondragover="allowDrop(event)">
-                        <div class="p-4 border-b border-gray-700 bg-gray-800 border-t-2 border-t-blue-500"><h3 class="font-bold text-sm text-gray-300">EN PROCESO</h3></div>
-                        <div class="p-4 flex-1 overflow-y-auto space-y-4">
-                            <div class="bg-gray-700 p-4 rounded-lg cursor-grab border-l-4 border-l-yellow-500 shadow-md" draggable="true" ondragstart="drag(event)" id="card-2">
-                                <h4 class="font-bold text-sm text-white mb-2">Diseñar Base de Datos</h4>
-                                <p class="text-xs text-gray-400 mb-4">Crear el modelo relacional en PostgreSQL.</p>
-                                <span class="bg-yellow-500/20 text-yellow-400 text-xs px-2 py-1 rounded font-bold">Media</span>
+                    <!-- POR HACER -->
+                    <div class="kanban-col bg-slate-900/80 rounded-2xl flex flex-col border border-slate-800 transition-colors"
+                         data-status="todo" ondrop="dropTask(event, 'todo')" ondragover="allowDropTask(event)" ondragleave="leaveDropTask(event)">
+                        <div class="p-4 border-b border-slate-800 flex items-center justify-between border-t-4 border-t-rose-500 rounded-t-2xl bg-slate-900">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                <h3 class="font-extrabold text-xs tracking-wider uppercase text-slate-200">Por Hacer</h3>
                             </div>
+                            <span id="count-todo" class="text-xs font-bold bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full">0</span>
                         </div>
+                        <div id="col-todo" class="p-3.5 flex-1 space-y-3 overflow-y-auto max-h-[60vh]"></div>
                     </div>
 
-                    <!-- Columna FINALIZADO -->
-                    <div class="flex-1 bg-gray-800/50 rounded-xl flex flex-col border border-gray-700" ondrop="drop(event)" ondragover="allowDrop(event)">
-                        <div class="p-4 border-b border-gray-700 bg-gray-800 border-t-2 border-t-green-500"><h3 class="font-bold text-sm text-gray-300">FINALIZADO</h3></div>
-                        <div class="p-4 flex-1 overflow-y-auto space-y-4">
-                            <div class="bg-gray-800 p-4 rounded-lg opacity-80 border border-gray-600 shadow-md" id="card-3">
-                                <h4 class="font-bold text-sm text-gray-300 line-through mb-2">Estructurar SRS IEEE 830</h4>
-                                <span class="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded font-bold">✓ Completado</span>
+                    <!-- EN PROCESO -->
+                    <div class="kanban-col bg-slate-900/80 rounded-2xl flex flex-col border border-slate-800 transition-colors"
+                         data-status="doing" ondrop="dropTask(event, 'doing')" ondragover="allowDropTask(event)" ondragleave="leaveDropTask(event)">
+                        <div class="p-4 border-b border-slate-800 flex items-center justify-between border-t-4 border-t-blue-500 rounded-t-2xl bg-slate-900">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                                <h3 class="font-extrabold text-xs tracking-wider uppercase text-slate-200">En Proceso</h3>
                             </div>
+                            <span id="count-doing" class="text-xs font-bold bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full">0</span>
                         </div>
+                        <div id="col-doing" class="p-3.5 flex-1 space-y-3 overflow-y-auto max-h-[60vh]"></div>
+                    </div>
+
+                    <!-- EN REVISIÓN INSTRUCTOR -->
+                    <div class="kanban-col bg-slate-900/80 rounded-2xl flex flex-col border border-slate-800 transition-colors"
+                         data-status="review" ondrop="dropTask(event, 'review')" ondragover="allowDropTask(event)" ondragleave="leaveDropTask(event)">
+                        <div class="p-4 border-b border-slate-800 flex items-center justify-between border-t-4 border-t-amber-500 rounded-t-2xl bg-slate-900">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                <h3 class="font-extrabold text-xs tracking-wider uppercase text-slate-200">En Revisión</h3>
+                            </div>
+                            <span id="count-review" class="text-xs font-bold bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full">0</span>
+                        </div>
+                        <div id="col-review" class="p-3.5 flex-1 space-y-3 overflow-y-auto max-h-[60vh]"></div>
+                    </div>
+
+                    <!-- FINALIZADO -->
+                    <div class="kanban-col bg-slate-900/80 rounded-2xl flex flex-col border border-slate-800 transition-colors"
+                         data-status="done" ondrop="dropTask(event, 'done')" ondragover="allowDropTask(event)" ondragleave="leaveDropTask(event)">
+                        <div class="p-4 border-b border-slate-800 flex items-center justify-between border-t-4 border-t-emerald-500 rounded-t-2xl bg-slate-900">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                <h3 class="font-extrabold text-xs tracking-wider uppercase text-slate-200">Finalizado</h3>
+                            </div>
+                            <span id="count-done" class="text-xs font-bold bg-slate-800 text-slate-300 px-2.5 py-0.5 rounded-full">0</span>
+                        </div>
+                        <div id="col-done" class="p-3.5 flex-1 space-y-3 overflow-y-auto max-h-[60vh]"></div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- ==========================================
+                 VISTA 4: REPOSITORIO DE EVIDENCIAS (RAP)
+                 ========================================== -->
+            <section id="evidencias" class="view space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-white">Repositorio de Evidencias y Entregables SENA</h2>
+                        <p class="text-xs text-slate-400 mt-1">Control de entregas asociadas a Resultados de Aprendizaje (RAP) y calificación del Instructor</p>
+                    </div>
+                    <button onclick="openModal('modal-new-evidence')" class="bg-sena hover:bg-sena-dark text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-sena/25 transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        Registrar Nueva Evidencia
+                    </button>
+                </div>
+
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left whitespace-nowrap">
+                            <thead class="bg-slate-950/60 text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="px-6 py-4">Archivo / Entregable</th>
+                                    <th class="px-6 py-4">Fase / RAP</th>
+                                    <th class="px-6 py-4">Tarea Asociada</th>
+                                    <th class="px-6 py-4">Responsable</th>
+                                    <th class="px-6 py-4">Juicio Evaluativo</th>
+                                    <th class="px-6 py-4 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="evidences-table-body" class="divide-y divide-slate-800 text-sm">
+                                <!-- Renderizado dinámicamente -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- VISTA 4: EVIDENCIAS -->
-            <div id="evidencias" class="view">
-                <h2 class="text-xl font-bold text-white mb-6">Repositorio de Evidencias</h2>
-                <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-900/50 text-gray-400 text-xs uppercase">
-                            <tr><th class="px-6 py-4">Archivo / Enlace</th><th class="px-6 py-4">Tarea Asociada</th><th class="px-6 py-4">Acción</th></tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-700">
-                            <tr class="bg-gray-800">
-                                <td class="px-6 py-4 text-gray-200">SRS_Definitivo_Proyectos.docx</td>
-                                <td class="px-6 py-4 text-gray-300">Estructurar SRS</td>
-                                <td class="px-6 py-4"><button class="bg-blue-600 px-3 py-1 rounded text-sm text-white">Descargar</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- VISTA 5: ASISTENTE IA -->
-            <div id="ia" class="view">
-                <h2 class="text-xl font-bold text-white mb-6">Asistente IA - Creador de Historias</h2>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                        <label class="font-bold text-gray-200 mb-3 block">¿Qué funcionalidad necesitas?</label>
-                        <textarea id="prompt-ia" class="w-full h-32 bg-gray-900 border border-gray-600 rounded-lg p-4 text-gray-200 focus:outline-none focus:border-green-500 resize-none" placeholder="Ejemplo: Quiero un sistema de inicio de sesión para que los instructores..."></textarea>
-                        <button onclick="simularIA()" class="mt-4 bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 px-6 rounded-lg w-full transition">✨ Generar Historia</button>
+            <!-- ==========================================
+                 VISTA 5: ASISTENTE IA (HISTORIAS DE USUARIO)
+                 ========================================== -->
+            <section id="ia" class="view space-y-6">
+                <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/60 p-6 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 text-[11px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">Copiloto IEEE 830 & Scrum</span>
+                        </div>
+                        <h2 class="text-2xl font-extrabold text-white mt-2">Asistente IA — Generador de Historias de Usuario</h2>
+                        <p class="text-xs text-slate-400 mt-1">Describe un requerimiento funcional y el asistente redactará la Historia de Usuario, Criterios de Aceptación y la enviará a tu Kanban.</p>
                     </div>
-                    
-                    <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 relative flex flex-col justify-center">
-                        <div id="ia-loading" class="absolute inset-0 bg-gray-800/90 hidden flex-col items-center justify-center z-10 rounded-xl">
-                            <p class="text-green-400 font-bold animate-pulse text-lg">Analizando requerimiento...</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Panel Izquierdo: Prompt + Plantillas -->
+                    <div class="lg:col-span-5 bg-slate-900 p-6 rounded-2xl border border-slate-800 flex flex-col justify-between space-y-4">
+                        <div>
+                            <label for="prompt-ia" class="font-bold text-sm text-slate-200 mb-2 block">¿Qué módulo o funcionalidad necesitas especificar?</label>
+                            <textarea id="prompt-ia" class="w-full h-36 bg-slate-950 border border-slate-700 rounded-xl p-4 text-sm text-slate-100 focus:outline-none focus:border-sena resize-none leading-relaxed" placeholder="Ej: Quiero que los instructores puedan calificar las evidencias con Aprobado (A) o Deficiente (D) y dejar observaciones..."></textarea>
+
+                            <div class="mt-4">
+                                <p class="text-xs font-semibold text-slate-400 mb-2">Plantillas rápidas (clic para probar):</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button" onclick="fillPresetIA('auth')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg transition">🔐 Login Institucional SENA</button>
+                                    <button type="button" onclick="fillPresetIA('calificacion')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg transition">📋 Calificación RAP (A / D)</button>
+                                    <button type="button" onclick="fillPresetIA('reporte')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg transition">📊 Exportar Reporte PDF</button>
+                                    <button type="button" onclick="fillPresetIA('alertas')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg transition">🔔 Alertas de Entregas</button>
+                                </div>
+                            </div>
                         </div>
-                        <div id="ia-empty" class="h-full flex items-center justify-center text-gray-500 border-2 border-dashed border-gray-700 rounded-lg p-6 text-center">
-                            El resultado aparecerá aquí listo para tu Kanban.
+
+                        <button onclick="simularIA()" class="bg-gradient-to-r from-sena to-emerald-600 hover:from-sena-dark hover:to-emerald-500 text-white font-bold py-3 px-6 rounded-xl w-full shadow-lg shadow-sena/25 transition flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            Generar Especificación con IA
+                        </button>
+                    </div>
+
+                    <!-- Panel Derecho: Resultado -->
+                    <div class="lg:col-span-7 bg-slate-900 p-6 rounded-2xl border border-slate-800 relative min-h-[340px] flex flex-col justify-center">
+                        <!-- Loading Overlay -->
+                        <div id="ia-loading" class="absolute inset-0 bg-slate-900/95 hidden flex-col items-center justify-center z-10 rounded-2xl p-6 text-center">
+                            <div class="w-12 h-12 rounded-full border-4 border-slate-700 border-t-sena animate-spin mb-4"></div>
+                            <p class="text-emerald-400 font-bold text-base">Estructurando Historia de Usuario bajo estándar Scrum / IEEE 830...</p>
+                            <p class="text-xs text-slate-400 mt-1">Generando criterios de aceptación y estimación de esfuerzo</p>
                         </div>
-                        <div id="ia-result" class="hidden h-full flex-col justify-between bg-gray-900 p-5 rounded-lg border border-gray-700">
+
+                        <!-- Empty State -->
+                        <div id="ia-empty" class="h-full flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-slate-800 rounded-xl p-8 text-center">
+                            <svg class="w-12 h-12 text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                            <p class="font-semibold text-slate-300 text-sm">Aún no has generado una historia</p>
+                            <p class="text-xs text-slate-500 mt-1 max-w-md">Selecciona una de las plantillas rápidas o escribe tu requerimiento para obtener criterios de aceptación listos para enviar al Kanban.</p>
+                        </div>
+
+                        <!-- Result State -->
+                        <div id="ia-result" class="hidden h-full flex-col justify-between bg-slate-950 p-6 rounded-xl border border-slate-800">
                             <div>
-                                <h3 class="font-bold text-white mb-2 pb-2 border-b border-gray-700">Historia de Usuario: Inicio de sesión</h3>
-                                <p class="text-sm text-gray-300 mb-4 leading-relaxed"><strong>Como:</strong> Usuario registrado<br><strong>Quiero:</strong> Iniciar sesión<br><strong>Para:</strong> Acceder a mi panel de control.</p>
-                                <p class="text-green-400 font-bold text-sm mb-1">Criterios de Aceptación:</p>
-                                <ul class="list-disc pl-5 text-sm text-gray-400 space-y-1">
-                                    <li>Validar credenciales cifradas.</li>
-                                    <li>Mostrar mensaje de error si falla.</li>
+                                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-800">
+                                    <div class="flex items-center gap-2">
+                                        <span id="ia-res-code" class="text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded">HU-008</span>
+                                        <h3 id="ia-res-title" class="font-extrabold text-white text-base">Historia de Usuario</h3>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span id="ia-res-priority" class="text-xs font-bold bg-rose-500/20 text-rose-400 px-2.5 py-0.5 rounded">Prioridad Alta</span>
+                                        <span id="ia-res-points" class="text-xs font-bold bg-blue-500/20 text-blue-400 px-2.5 py-0.5 rounded">5 Story Points</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 space-y-1.5 mb-4">
+                                    <p><strong class="text-emerald-400">Como:</strong> <span id="ia-res-role">Instructor Evaluador SENA</span></p>
+                                    <p><strong class="text-emerald-400">Quiero:</strong> <span id="ia-res-want">Iniciar sesión de forma segura</span></p>
+                                    <p><strong class="text-emerald-400">Para:</strong> <span id="ia-res-for">Acceder al panel de seguimiento de fichas asignadas</span></p>
+                                </div>
+
+                                <p class="text-xs font-extrabold uppercase tracking-wider text-slate-400 mb-2">Criterios de Aceptación (Gherkin / Check):</p>
+                                <ul id="ia-res-criteria" class="space-y-1.5 text-xs text-slate-300 pl-1">
+                                    <!-- Renderizado dinámicamente -->
                                 </ul>
                             </div>
-                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm self-end mt-4">+ Guardar en Kanban</button>
+
+                            <div class="pt-4 mt-5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                                <span class="text-xs text-slate-400">Responsable sugerido: <strong id="ia-res-assignee" class="text-white">Fayber Díaz</strong></span>
+                                <button onclick="guardarHistoriaEnKanban()" class="bg-sena hover:bg-sena-dark text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-sena/25 transition flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                    Enviar al Tablero Kanban
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
         </div>
     </main>
 
+    <!-- ==========================================
+         MODALES NATIVOS (<dialog>)
+         ========================================== -->
+
+    <!-- Modal 1: Crear Nueva Tarea Kanban -->
+    <dialog id="modal-new-task" class="bg-slate-900 text-slate-100 border border-slate-700 rounded-2xl p-0 w-full max-w-lg shadow-2xl">
+        <form onsubmit="handleCreateTask(event)" class="p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-extrabold text-white">Nueva Tarea para el Kanban</h3>
+                <button type="button" onclick="closeModal('modal-new-task')" class="text-slate-400 hover:text-white p-1">✕</button>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Título de la Tarea *</label>
+                <input type="text" id="task-title" required placeholder="Ej: Implementar endpoint JWT en Express" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Descripción técnica *</label>
+                <textarea id="task-desc" required rows="3" placeholder="Detalles de implementación o entregable..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-sena resize-none"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Prioridad</label>
+                    <select id="task-priority" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+                        <option value="Alta">Alta</option>
+                        <option value="Media" selected>Media</option>
+                        <option value="Baja">Baja</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Fase del Proyecto</label>
+                    <select id="task-phase" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+                        <option value="Análisis">Fase 1: Análisis</option>
+                        <option value="Planeación">Fase 2: Planeación</option>
+                        <option value="Ejecución">Fase 3: Ejecución</option>
+                        <option value="Evaluación">Fase 4: Evaluación</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Responsable</label>
+                    <select id="task-assignee" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+                        <option value="Fayber Díaz">Fayber Díaz</option>
+                        <option value="Luiger Ledezma">Luiger Ledezma</option>
+                        <option value="Sonia Solórzano">Sonia Solórzano</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Fecha Límite</label>
+                    <input type="date" id="task-date" value="2026-11-25" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button type="button" onclick="closeModal('modal-new-task')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800">Cancelar</button>
+                <button type="submit" class="bg-sena hover:bg-sena-dark text-white px-5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-sena/25">Guardar Tarea</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Modal 2: Agregar Integrante al Equipo -->
+    <dialog id="modal-new-member" class="bg-slate-900 text-slate-100 border border-slate-700 rounded-2xl p-0 w-full max-w-md shadow-2xl">
+        <form onsubmit="handleCreateMember(event)" class="p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-extrabold text-white">Integrar Aprendiz al Equipo</h3>
+                <button type="button" onclick="closeModal('modal-new-member')" class="text-slate-400 hover:text-white p-1">✕</button>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Nombre Completo *</label>
+                <input type="text" id="member-name" required placeholder="Ej: Carlos Andrés Gómez" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Rol en el Proyecto *</label>
+                <input type="text" id="member-role" required placeholder="Ej: Analista QA & Base de Datos" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Correo Institucional (@soy.sena.edu.co) *</label>
+                <input type="email" id="member-email" required placeholder="cagomez@soy.sena.edu.co" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Habilidades Clave (separadas por coma)</label>
+                <input type="text" id="member-skills" placeholder="SQL, Pruebas, Documentación IEEE" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+            </div>
+
+            <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button type="button" onclick="closeModal('modal-new-member')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800">Cancelar</button>
+                <button type="submit" class="bg-sena hover:bg-sena-dark text-white px-5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-sena/25">Agregar al Equipo</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Modal 3: Subir Nueva Evidencia -->
+    <dialog id="modal-new-evidence" class="bg-slate-900 text-slate-100 border border-slate-700 rounded-2xl p-0 w-full max-w-md shadow-2xl">
+        <form onsubmit="handleCreateEvidence(event)" class="p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-extrabold text-white">Subir Evidencia de Aprendizaje</h3>
+                <button type="button" onclick="closeModal('modal-new-evidence')" class="text-slate-400 hover:text-white p-1">✕</button>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Nombre del Archivo o Enlace GitHub *</label>
+                <input type="text" id="ev-file" required placeholder="Ej: Modelo_Relacional_V2.pdf" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Resultado de Aprendizaje (RAP) / Fase</label>
+                <select id="ev-rap" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+                    <option value="RAP 1 - Especificación de Requisitos">RAP 1 - Especificación de Requisitos</option>
+                    <option value="RAP 2 - Diseño de Arquitectura y MER">RAP 2 - Diseño de Arquitectura y MER</option>
+                    <option value="RAP 3 - Construcción de Software">RAP 3 - Construcción de Software</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Tarea Asociada *</label>
+                <input type="text" id="ev-task" required placeholder="Ej: Diseñar Base de Datos PostgreSQL" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 mb-1">Responsable de la Entrega</label>
+                <select id="ev-author" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-sena">
+                    <option value="Fayber Díaz">Fayber Díaz</option>
+                    <option value="Luiger Ledezma">Luiger Ledezma</option>
+                    <option value="Sonia Solórzano">Sonia Solórzano</option>
+                </select>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button type="button" onclick="closeModal('modal-new-evidence')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800">Cancelar</button>
+                <button type="submit" class="bg-sena hover:bg-sena-dark text-white px-5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-sena/25">Subir Entregable</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 pointer-events-none"></div>
+
+    <!-- ==========================================
+         LÓGICA INTERACTIVA (JAVASCRIPT)
+         ========================================== -->
     <script>
-        // Lógica de Menú Lateral
-        function switchView(viewId, btn) {
-            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('active', 'bg-green-600', 'text-white');
-                el.classList.add('text-gray-300');
-            });
-            btn.classList.remove('text-gray-300');
-            btn.classList.add('active', 'bg-green-600', 'text-white');
+        const STORAGE_KEY = 'sena_prototipo_v2_state';
+
+        const defaultState = {
+            role: 'aprendiz', // 'aprendiz' | 'instructor'
+            teams: [
+                { id: 1, name: 'Innovadores ADSO', project: 'Plataforma Seguimiento Proyectos SENA', phase: 'Análisis (IEEE 830)', progress: 75, status: 'Al Día', membersCount: 3 },
+                { id: 2, name: 'Los Desarrolladores', project: 'Antojo Virtual - E-Commerce Gastronómico', phase: 'Planeación (MER)', progress: 60, status: 'En Progreso', membersCount: 4 },
+                { id: 3, name: 'CodeMasters Cauca', project: 'Sistema de Inventario Agropecuario QR', phase: 'Análisis (BPMN)', progress: 40, status: 'Riesgo Retraso', membersCount: 3 },
+                { id: 4, name: 'Pixel & Byte SENA', project: 'App Control de Asistencia Biométrica', phase: 'Planeación (UI/UX)', progress: 82, status: 'Al Día', membersCount: 4 }
+            ],
+            members: [
+                {
+                    id: 1,
+                    name: 'Fayber Estyben Díaz',
+                    role: 'Líder de Proyecto / Full-Stack',
+                    email: 'fediaz@soy.sena.edu.co',
+                    isLeader: true,
+                    skills: ['Node.js', 'Arquitectura', 'IEEE 830', 'Scrum'],
+                    color: '39A900'
+                },
+                {
+                    id: 2,
+                    name: 'Luiger Dalieth Ledezma',
+                    role: 'Desarrollador Backend & BD',
+                    email: 'ldledezma@soy.sena.edu.co',
+                    isLeader: false,
+                    skills: ['PostgreSQL', 'Express.js', 'API REST', 'Seguridad'],
+                    color: '2563EB'
+                },
+                {
+                    id: 3,
+                    name: 'Sonia Alexandra Solórzano',
+                    role: 'Diseñadora UI/UX & Analista',
+                    email: 'sasolorzano@soy.sena.edu.co',
+                    isLeader: false,
+                    skills: ['Figma', 'Tailwind CSS', 'Prototipado', 'Casos de Uso'],
+                    color: '9333EA'
+                }
+            ],
+            tasks: [
+                {
+                    id: 'task-1',
+                    code: 'HU-001',
+                    title: 'Estructurar Documento SRS IEEE 830',
+                    desc: 'Definir requerimientos funcionales (RF), no funcionales (RNF) y matriz de trazabilidad.',
+                    priority: 'Alta',
+                    phase: 'Análisis',
+                    assignee: 'Fayber Díaz',
+                    dueDate: '2026-11-10',
+                    status: 'done'
+                },
+                {
+                    id: 'task-2',
+                    code: 'HU-002',
+                    title: 'Diseñar Prototipo Interactivo de Alta Fidelidad',
+                    desc: 'Construir vistas de Dashboard, Equipo, Kanban, Evidencias y Asistente IA.',
+                    priority: 'Alta',
+                    phase: 'Planeación',
+                    assignee: 'Sonia Solórzano',
+                    dueDate: '2026-11-15',
+                    status: 'review'
+                },
+                {
+                    id: 'task-3',
+                    code: 'HU-003',
+                    title: 'Modelar Base de Datos Relacional en PostgreSQL',
+                    desc: 'Crear tablas de Fichas, Equipos, Aprendices, Tareas Kanban y Evidencias RAP.',
+                    priority: 'Media',
+                    phase: 'Planeación',
+                    assignee: 'Luiger Ledezma',
+                    dueDate: '2026-11-18',
+                    status: 'doing'
+                },
+                {
+                    id: 'task-4',
+                    code: 'HU-004',
+                    title: 'Configurar Servidor Backend con Express.js',
+                    desc: 'Inicializar estructura MVC, variables de entorno y conexión mediante Prisma ORM.',
+                    priority: 'Alta',
+                    phase: 'Ejecución',
+                    assignee: 'Luiger Ledezma',
+                    dueDate: '2026-11-22',
+                    status: 'todo'
+                },
+                {
+                    id: 'task-5',
+                    code: 'HU-005',
+                    title: 'Diagramar Procesos de Negocio BPMN 2.0',
+                    desc: 'Modelar el proceso AS-IS y TO-BE de revisión de proyectos formativos en el SENA.',
+                    priority: 'Baja',
+                    phase: 'Análisis',
+                    assignee: 'Fayber Díaz',
+                    dueDate: '2026-11-20',
+                    status: 'done'
+                }
+            ],
+            evidences: [
+                {
+                    id: 1,
+                    file: 'SRS_Definitivo_Proyectos_SENA_v2.docx',
+                    rap: 'RAP 1 - Especificación de Requisitos',
+                    task: 'Estructurar SRS IEEE 830',
+                    author: 'Fayber Díaz',
+                    evaluation: 'Aprobado (A)'
+                },
+                {
+                    id: 2,
+                    file: 'Prototipo_Interactivo_ADSO_3413988.html',
+                    rap: 'RAP 2 - Diseño de Interfaces UI/UX',
+                    task: 'Diseñar Prototipo Interactivo',
+                    author: 'Sonia Solórzano',
+                    evaluation: 'Aprobado (A)'
+                },
+                {
+                    id: 3,
+                    file: 'Diagrama_Entidad_Relacion_PostgreSQL.sql',
+                    rap: 'RAP 2 - Diseño de Arquitectura y MER',
+                    task: 'Modelar Base de Datos Relacional',
+                    author: 'Luiger Ledezma',
+                    evaluation: 'Pendiente Revisión'
+                }
+            ]
+        };
+
+        let state = loadState();
+        let lastGeneratedStory = null;
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : structuredClone(defaultState);
+            } catch (e) {
+                return structuredClone(defaultState);
+            }
         }
 
-        // Lógica del Botón IA
-        function simularIA() {
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {}
+            updateBadgesAndKPIs();
+        }
+
+        function resetDemoData() {
+            state = structuredClone(defaultState);
+            saveState();
+            renderAll();
+            showToast('Datos de demostración restaurados correctamente', 'info');
+        }
+
+        // Navegación con soporte para View Transitions API
+        function switchView(viewId, btnElement) {
+            const performSwitch = () => {
+                document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+                const target = document.getElementById(viewId);
+                if (target) target.classList.add('active');
+
+                document.querySelectorAll('.nav-item').forEach(el => {
+                    el.classList.remove('active');
+                    el.classList.add('text-slate-300');
+                });
+                const activeBtn = btnElement || document.querySelector(`.nav-item[data-view="${viewId}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.remove('text-slate-300');
+                    activeBtn.classList.add('active');
+                }
+            };
+
+            if (document.startViewTransition) {
+                document.startViewTransition(performSwitch);
+            } else {
+                performSwitch();
+            }
+        }
+
+        // Cambio de Rol (Aprendiz vs Instructor Evaluador)
+        function toggleRole() {
+            state.role = state.role === 'aprendiz' ? 'instructor' : 'aprendiz';
+            saveState();
+            renderRoleUI();
+            renderEvidences();
+            showToast(
+                state.role === 'instructor'
+                    ? 'Modo Instructor activado: Ahora puedes calificar evidencias con (A) o (D).'
+                    : 'Modo Aprendiz Líder activado.',
+                'success'
+            );
+        }
+
+        function renderRoleUI() {
+            const roleBadge = document.getElementById('current-role-badge');
+            const roleText = document.getElementById('role-switch-text');
+            if (state.role === 'instructor') {
+                roleBadge.textContent = 'Instructor Evaluador • SENA';
+                roleBadge.className = 'text-xs text-amber-400 font-semibold truncate';
+                roleText.textContent = 'Instructor SENA';
+            } else {
+                roleBadge.textContent = 'Aprendiz Líder • Ficha 3413988';
+                roleBadge.className = 'text-xs text-emerald-400 font-medium truncate';
+                roleText.textContent = 'Aprendiz / Admin';
+            }
+        }
+
+        // Renderizar Tabla de Equipos (Dashboard)
+        function renderTeamsTable() {
+            const tbody = document.getElementById('teams-table-body');
+            const query = (document.getElementById('search-teams')?.value || '').toLowerCase();
+            const statusFilter = document.getElementById('filter-team-status')?.value || 'ALL';
+
+            const filtered = state.teams.filter(t => {
+                const matchesText = t.name.toLowerCase().includes(query) || t.project.toLowerCase().includes(query);
+                const matchesStatus = statusFilter === 'ALL' || t.status === statusFilter;
+                return matchesText && matchesStatus;
+            });
+
+            tbody.innerHTML = filtered.map(team => {
+                let badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                if (team.status === 'En Progreso') badgeClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+                if (team.status === 'Riesgo Retraso') badgeClass = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+
+                return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-white">${team.name}</div>
+                            <div class="text-xs text-slate-400">${team.membersCount} aprendices</div>
+                        </td>
+                        <td class="px-6 py-4 text-slate-200 font-medium">${team.project}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-between text-xs mb-1">
+                                <span class="text-slate-300 font-medium">${team.phase}</span>
+                                <span class="font-bold text-emerald-400">${team.progress}%</span>
+                            </div>
+                            <div class="w-36 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-sena rounded-full" style="width: ${team.progress}%"></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="${badgeClass} border px-3 py-1 rounded-full text-xs font-bold">${team.status}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <button onclick="switchView('equipo')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition">Integrantes</button>
+                            <button onclick="switchView('kanban')" class="bg-sena/20 hover:bg-sena text-emerald-300 hover:text-white border border-sena/30 px-3 py-1.5 rounded-lg text-xs font-bold transition">Abrir Kanban →</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Renderizar Mi Equipo
+        function renderTeamMembers() {
+            const grid = document.getElementById('team-members-grid');
+            grid.innerHTML = state.members.map(m => {
+                const assignedTasks = state.tasks.filter(t => t.assignee.toLowerCase().includes(m.name.split(' ')[0].toLowerCase())).length;
+                const skillsHtml = (m.skills || []).map(s => `<span class="text-[11px] bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-md font-medium">${s}</span>`).join('');
+                return `
+                    <div class="bg-slate-900 p-6 rounded-2xl border ${m.isLeader ? 'border-sena/60 shadow-lg shadow-sena/5' : 'border-slate-800'} relative flex flex-col justify-between">
+                        ${m.isLeader ? '<span class="absolute top-4 right-4 bg-sena/20 text-emerald-300 border border-sena/40 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">Líder de Célula</span>' : ''}
+                        <div>
+                            <div class="flex items-center gap-4">
+                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(m.name)}&background=${m.color || '39A900'}&color=fff&bold=true" alt="${m.name}" class="w-16 h-16 rounded-2xl shadow-md">
+                                <div>
+                                    <h3 class="font-extrabold text-base text-white">${m.name}</h3>
+                                    <p class="text-xs text-emerald-400 font-semibold mt-0.5">${m.role}</p>
+                                    <p class="text-xs text-slate-400 mt-1">${m.email}</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex flex-wrap gap-1.5">
+                                ${skillsHtml}
+                            </div>
+                        </div>
+                        <div class="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between text-xs">
+                            <span class="text-slate-400">Tareas en Kanban: <strong class="text-white">${assignedTasks}</strong></span>
+                            <button onclick="switchView('kanban')" class="text-emerald-400 hover:underline font-bold">Ver tareas →</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Renderizar Kanban
+        function renderKanban() {
+            const filterPriority = document.getElementById('kanban-filter-priority')?.value || 'ALL';
+            const columns = { todo: [], doing: [], review: [], done: [] };
+
+            state.tasks.forEach(t => {
+                if (filterPriority !== 'ALL' && t.priority !== filterPriority) return;
+                if (columns[t.status]) columns[t.status].push(t);
+            });
+
+            Object.keys(columns).forEach(status => {
+                const container = document.getElementById(`col-${status}`);
+                const counter = document.getElementById(`count-${status}`);
+                const list = columns[status];
+                counter.textContent = list.length;
+
+                if (list.length === 0) {
+                    container.innerHTML = `
+                        <div class="border-2 border-dashed border-slate-800/80 rounded-xl p-6 text-center text-xs text-slate-500">
+                            Arrastra una tarjeta aquí
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = list.map(t => {
+                    let prioClass = 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+                    let borderLeft = 'border-l-blue-500';
+                    if (t.priority === 'Alta') {
+                        prioClass = 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+                        borderLeft = 'border-l-rose-500';
+                    } else if (t.priority === 'Media') {
+                        prioClass = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+                        borderLeft = 'border-l-amber-500';
+                    }
+
+                    const isDone = t.status === 'done';
+
+                    return `
+                        <div class="kanban-card bg-slate-950 p-4 rounded-xl cursor-grab border border-slate-800 border-l-4 ${borderLeft} shadow-md"
+                             draggable="true"
+                             ondragstart="dragTask(event, '${t.id}')"
+                             ondragend="dragEndTask(event)"
+                             id="${t.id}">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 bg-slate-900 px-2 py-0.5 rounded">${t.code || 'HU'} • ${t.phase}</span>
+                                <button onclick="deleteTask('${t.id}')" class="text-slate-500 hover:text-rose-400 text-xs transition" title="Eliminar tarea">✕</button>
+                            </div>
+                            <h4 class="font-bold text-sm ${isDone ? 'line-through text-slate-400' : 'text-white'} mb-1.5">${t.title}</h4>
+                            <p class="text-xs text-slate-400 mb-3 leading-relaxed">${t.desc}</p>
+                            <div class="flex items-center justify-between pt-2.5 border-t border-slate-900">
+                                <span class="${prioClass} border text-[10px] px-2 py-0.5 rounded-md font-bold">${t.priority}</span>
+                                <div class="flex items-center gap-1.5">
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(t.assignee)}&background=334155&color=fff&bold=true" class="w-5 h-5 rounded-full" title="${t.assignee}">
+                                    <span class="text-[11px] text-slate-300 font-medium">${t.assignee.split(' ')[0]}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        // Drag & Drop Kanban
+        function allowDropTask(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+        function leaveDropTask(ev) {
+            ev.currentTarget.classList.remove('drag-over');
+        }
+        function dragTask(ev, taskId) {
+            ev.dataTransfer.setData('text/plain', taskId);
+            setTimeout(() => ev.target.classList.add('dragging'), 0);
+        }
+        function dragEndTask(ev) {
+            ev.target.classList.remove('dragging');
+            document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
+        }
+        function dropTask(ev, newStatus) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            const taskId = ev.dataTransfer.getData('text/plain');
+            const task = state.tasks.find(t => t.id === taskId);
+            if (task && task.status !== newStatus) {
+                task.status = newStatus;
+                saveState();
+                renderKanban();
+                const statusNames = { todo: 'Por Hacer', doing: 'En Proceso', review: 'En Revisión', done: 'Finalizado' };
+                showToast(`Tarea "${task.title}" movida a ${statusNames[newStatus]}`, 'success');
+            }
+        }
+
+        function deleteTask(taskId) {
+            state.tasks = state.tasks.filter(t => t.id !== taskId);
+            saveState();
+            renderKanban();
+            renderTeamMembers();
+            showToast('Tarea eliminada del tablero', 'info');
+        }
+
+        // Renderizar Evidencias RAP
+        function renderEvidences() {
+            const tbody = document.getElementById('evidences-table-body');
+            tbody.innerHTML = state.evidences.map(ev => {
+                let evalBadge = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+                if (ev.evaluation.includes('Pendiente')) evalBadge = 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+                if (ev.evaluation.includes('Por Corregir') || ev.evaluation.includes('(D)')) evalBadge = 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+
+                const instructorControls = state.role === 'instructor'
+                    ? `<button onclick="toggleEvaluation(${ev.id})" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-lg text-xs font-bold transition">Cambiar Juicio (A/D)</button>`
+                    : '';
+
+                return `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2.5">
+                                <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span class="font-bold text-white">${ev.file}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-xs text-slate-300 font-medium">${ev.rap}</td>
+                        <td class="px-6 py-4 text-slate-300">${ev.task}</td>
+                        <td class="px-6 py-4 text-slate-300">${ev.author}</td>
+                        <td class="px-6 py-4">
+                            <span class="${evalBadge} border px-3 py-1 rounded-full text-xs font-bold">${ev.evaluation}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            ${instructorControls}
+                            <button onclick="showToast('Descargando entregable: ${ev.file}', 'info')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">Descargar</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function toggleEvaluation(evId) {
+            const item = state.evidences.find(e => e.id === evId);
+            if (!item) return;
+            const order = ['Pendiente Revisión', 'Aprobado (A)', 'Por Corregir (D)'];
+            const nextIdx = (order.indexOf(item.evaluation) + 1) % order.length;
+            item.evaluation = order[nextIdx];
+            saveState();
+            renderEvidences();
+            showToast(`Juicio evaluativo actualizado a: ${item.evaluation}`, 'success');
+        }
+
+        // Actualizar contadores y KPIs
+        function updateBadgesAndKPIs() {
+            const totalTasks = state.tasks.length;
+            const doneTasks = state.tasks.filter(t => t.status === 'done').length;
+            const progressPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
+            document.getElementById('nav-badge-equipo').textContent = state.members.length;
+            document.getElementById('nav-badge-kanban').textContent = totalTasks;
+            document.getElementById('nav-badge-evidencias').textContent = state.evidences.length;
+
+            document.getElementById('kpi-projects-count').textContent = state.teams.length;
+            document.getElementById('kpi-tasks-count').textContent = totalTasks;
+            document.getElementById('kpi-tasks-completed').textContent = `${doneTasks} completadas (${progressPct}%)`;
+            document.getElementById('kpi-evidences-count').textContent = state.evidences.length;
+
+            document.getElementById('sidebar-progress-text').textContent = `${progressPct}%`;
+            document.getElementById('sidebar-progress-bar').style.width = `${Math.max(15, progressPct)}%`;
+        }
+
+        // Modales nativos <dialog> con cierre al hacer clic en el backdrop
+        function openModal(id) {
+            const dlg = document.getElementById(id);
+            if (dlg) dlg.showModal();
+        }
+        function closeModal(id) {
+            const dlg = document.getElementById(id);
+            if (dlg) dlg.close();
+        }
+        document.querySelectorAll('dialog').forEach(dialog => {
+            dialog.addEventListener('click', (e) => {
+                if (e.target === dialog) dialog.close();
+            });
+        });
+
+        // Formularios Modales
+        function handleCreateTask(e) {
+            e.preventDefault();
+            const newTask = {
+                id: 'task-' + Date.now(),
+                code: 'HU-00' + (state.tasks.length + 1),
+                title: document.getElementById('task-title').value.trim(),
+                desc: document.getElementById('task-desc').value.trim(),
+                priority: document.getElementById('task-priority').value,
+                phase: document.getElementById('task-phase').value,
+                assignee: document.getElementById('task-assignee').value,
+                dueDate: document.getElementById('task-date').value,
+                status: 'todo'
+            };
+            state.tasks.unshift(newTask);
+            saveState();
+            renderKanban();
+            renderTeamMembers();
+            e.target.reset();
+            closeModal('modal-new-task');
+            switchView('kanban');
+            showToast(`Tarea "${newTask.title}" agregada a Por Hacer`, 'success');
+        }
+
+        function handleCreateMember(e) {
+            e.preventDefault();
+            const skillsRaw = document.getElementById('member-skills').value.trim();
+            const newMember = {
+                id: Date.now(),
+                name: document.getElementById('member-name').value.trim(),
+                role: document.getElementById('member-role').value.trim(),
+                email: document.getElementById('member-email').value.trim(),
+                isLeader: false,
+                skills: skillsRaw ? skillsRaw.split(',').map(s => s.trim()) : ['Desarrollo ADSO', 'Scrum'],
+                color: '059669'
+            };
+            state.members.push(newMember);
+            saveState();
+            renderTeamMembers();
+            e.target.reset();
+            closeModal('modal-new-member');
+            showToast(`${newMember.name} fue integrado al equipo`, 'success');
+        }
+
+        function handleCreateEvidence(e) {
+            e.preventDefault();
+            const newEv = {
+                id: Date.now(),
+                file: document.getElementById('ev-file').value.trim(),
+                rap: document.getElementById('ev-rap').value,
+                task: document.getElementById('ev-task').value.trim(),
+                author: document.getElementById('ev-author').value,
+                evaluation: 'Pendiente Revisión'
+            };
+            state.evidences.unshift(newEv);
+            saveState();
+            renderEvidences();
+            e.target.reset();
+            closeModal('modal-new-evidence');
+            switchView('evidencias');
+            showToast(`Evidencia "${newEv.file}" registrada con éxito`, 'success');
+        }
+
+        // Asistente IA
+        const iaPresets = {
+            auth: {
+                prompt: 'Quiero un sistema de autenticación institucional para que los instructores y aprendices inicien sesión con su correo @soy.sena.edu.co y rol asignado.',
+                title: 'Autenticación Institucional por Roles (JWT)',
+                role: 'Aprendiz / Instructor SENA',
+                want: 'Iniciar sesión con credenciales institucionales y validación de rol',
+                forText: 'Acceder de forma segura a los tableros y evidencias de mi ficha asignada',
+                priority: 'Alta',
+                points: '5 Story Points',
+                assignee: 'Luiger Ledezma',
+                criteria: [
+                    'Validar formato de correo institucional (@soy.sena.edu.co o @sena.edu.co).',
+                    'Encriptar contraseñas con bcrypt y emitir token JWT con expiración de 8 horas.',
+                    'Redirigir automáticamente según el rol (Instructor Evaluador vs Aprendiz).'
+                ]
+            },
+            calificacion: {
+                prompt: 'Necesito un módulo donde el instructor pueda evaluar cada evidencia subida con juicio Aprobado (A) o Por Corregir (D) junto con retroalimentación escrita.',
+                title: 'Evaluación de Evidencias por Resultados (RAP)',
+                role: 'Instructor Evaluador SENA',
+                want: 'Emitir juicios evaluativos (A / D) y observaciones sobre los entregables',
+                forText: 'Realizar seguimiento pedagógico transparente al avance de cada equipo',
+                priority: 'Alta',
+                points: '8 Story Points',
+                assignee: 'Fayber Díaz',
+                criteria: [
+                    'Permitir cambiar el estado del entregable entre Pendiente, Aprobado (A) y Por Corregir (D).',
+                    'Registrar fecha, hora e instructor que realizó la retroalimentación.',
+                    'Notificar visualmente al equipo aprendiz en su Dashboard principal.'
+                ]
+            },
+            reporte: {
+                prompt: 'Quiero generar un reporte consolidado en PDF del avance de todos los equipos de la Ficha 3413988 para comité de evaluación.',
+                title: 'Exportación de Reporte Ejecutivo de Ficha en PDF',
+                role: 'Coordinador / Instructor Líder',
+                want: 'Descargar un informe consolidado con métricas de avance y entregas por equipo',
+                forText: 'Presentar evidencias de seguimiento en el comité trimestral de evaluación',
+                priority: 'Media',
+                points: '3 Story Points',
+                assignee: 'Sonia Solórzano',
+                criteria: [
+                    'Incluir porcentaje de avance por fase (Análisis, Planeación, Ejecución, Evaluación).',
+                    'Listar integrantes de cada célula ágil y estado de sus entregas RAP.',
+                    'Generar documento descargable con membrete institucional.'
+                ]
+            },
+            alertas: {
+                prompt: 'Necesito alertas automáticas cuando una tarea del Kanban o una evidencia esté próxima a vencer.',
+                title: 'Sistema de Alertas Tempranas de Vencimiento',
+                role: 'Aprendiz Líder de Proyecto',
+                want: 'Recibir alertas visuales de tareas y entregables próximos a la fecha límite',
+                forText: 'Evitar retrasos en el cronograma del proyecto formativo',
+                priority: 'Media',
+                points: '5 Story Points',
+                assignee: 'Fayber Díaz',
+                criteria: [
+                    'Destacar en color ámbar las tareas que vencen en menos de 48 horas.',
+                    'Mostrar contador de entregas pendientes en el encabezado del Dashboard.',
+                    'Permitir filtrar el tablero Kanban por prioridad Alta.'
+                ]
+            }
+        };
+
+        function fillPresetIA(key) {
+            const preset = iaPresets[key];
+            if (!preset) return;
+            document.getElementById('prompt-ia').value = preset.prompt;
+            simularIA(preset);
+        }
+
+        function simularIA(forcedPreset = null) {
             const textarea = document.getElementById('prompt-ia');
-            if(textarea.value.trim() === '') {
-                textarea.classList.add('border-red-500');
-                setTimeout(() => textarea.classList.remove('border-red-500'), 1000);
+            const text = textarea.value.trim();
+            if (!text) {
+                textarea.classList.add('border-rose-500');
+                setTimeout(() => textarea.classList.remove('border-rose-500'), 1200);
+                showToast('Escribe una funcionalidad o elige una plantilla rápida', 'info');
                 return;
             }
+
             document.getElementById('ia-loading').classList.remove('hidden');
             document.getElementById('ia-loading').classList.add('flex');
-            
+
             setTimeout(() => {
                 document.getElementById('ia-loading').classList.add('hidden');
+                document.getElementById('ia-loading').classList.remove('flex');
                 document.getElementById('ia-empty').classList.add('hidden');
                 document.getElementById('ia-result').classList.remove('hidden');
                 document.getElementById('ia-result').classList.add('flex');
-            }, 1800);
+
+                const code = 'HU-00' + (state.tasks.length + 1);
+                const story = forcedPreset || {
+                    title: text.length > 48 ? text.substring(0, 48) + '...' : text,
+                    role: 'Usuario de la Plataforma SENA',
+                    want: text,
+                    forText: 'Optimizar el seguimiento y control del proyecto formativo en la Ficha 3413988',
+                    priority: 'Alta',
+                    points: '5 Story Points',
+                    assignee: 'Fayber Díaz',
+                    criteria: [
+                        'Interfaz responsiva validada con diseño institucional SENA.',
+                        'Persistencia de datos verificada y manejo de errores controlado.',
+                        'Cumplimiento de estándares de calidad definidos en el SRS IEEE 830.'
+                    ]
+                };
+
+                lastGeneratedStory = { ...story, code };
+
+                document.getElementById('ia-res-code').textContent = code;
+                document.getElementById('ia-res-title').textContent = story.title;
+                document.getElementById('ia-res-role').textContent = story.role;
+                document.getElementById('ia-res-want').textContent = story.want;
+                document.getElementById('ia-res-for').textContent = story.forText;
+                document.getElementById('ia-res-priority').textContent = 'Prioridad ' + story.priority;
+                document.getElementById('ia-res-points').textContent = story.points;
+                document.getElementById('ia-res-assignee').textContent = story.assignee;
+
+                document.getElementById('ia-res-criteria').innerHTML = story.criteria.map(c => `
+                    <li class="flex items-start gap-2">
+                        <span class="text-emerald-400 font-bold">✓</span>
+                        <span>${c}</span>
+                    </li>
+                `).join('');
+            }, 900);
         }
 
-        // Lógica del Tablero Kanban (Drag & Drop)
-        function allowDrop(ev) { ev.preventDefault(); }
-        function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); }
-        function drop(ev) {
-            ev.preventDefault();
-            var data = ev.dataTransfer.getData("text");
-            var dropzone = ev.target.closest('.flex-1').querySelector('.overflow-y-auto');
-            if (dropzone) { dropzone.appendChild(document.getElementById(data)); }
+        function guardarHistoriaEnKanban() {
+            if (!lastGeneratedStory) return;
+            const newTask = {
+                id: 'task-' + Date.now(),
+                code: lastGeneratedStory.code,
+                title: lastGeneratedStory.title,
+                desc: `Como ${lastGeneratedStory.role}, quiero ${lastGeneratedStory.want.toLowerCase()}.`,
+                priority: lastGeneratedStory.priority,
+                phase: 'Análisis',
+                assignee: lastGeneratedStory.assignee,
+                dueDate: '2026-11-28',
+                status: 'todo'
+            };
+            state.tasks.unshift(newTask);
+            saveState();
+            renderKanban();
+            renderTeamMembers();
+            showToast(`Historia ${newTask.code} enviada al Tablero Kanban`, 'success');
+            switchView('kanban');
         }
+
+        // Notificaciones Toast
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'success'
+                ? 'bg-slate-900 border-emerald-500/50 text-emerald-300'
+                : 'bg-slate-900 border-blue-500/50 text-blue-300';
+
+            toast.className = `${colors} border px-4 py-3 rounded-xl shadow-2xl text-xs font-bold flex items-center gap-2.5 pointer-events-auto transition-all duration-300`;
+            toast.innerHTML = `
+                <span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-emerald-400' : 'bg-blue-400'}"></span>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(6px)';
+                setTimeout(() => toast.remove(), 250);
+            }, 3200);
+        }
+
+        function renderAll() {
+            renderRoleUI();
+            renderTeamsTable();
+            renderTeamMembers();
+            renderKanban();
+            renderEvidences();
+            updateBadgesAndKPIs();
+        }
+
+        // Inicializar aplicación
+        renderAll();
     </script>
 </body>
 </html>
