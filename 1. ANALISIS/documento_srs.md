@@ -178,8 +178,76 @@ Los usuarios poseen conocimientos en el uso de navegadores web y plataformas edu
 
 ### 3.4 Requerimientos no funcionales
 
-| ID           | Descripción                | Criterio Técnico                                         |
-| ------------ | -------------------------- | -------------------------------------------------------- |
-| **RNF 01.1** | Seguridad en contraseñas   | Las contraseñas deben cifrarse en la BD mediante bcrypt. |
-| **RNF 02.1** | Disponibilidad del Sistema | La plataforma debe estar operativa el 99% del tiempo.    |
-| **RNF 03.1** | Tiempos de Respuesta       | Cualquier carga de                                       |
+| ID           | Descripción                 | Criterio Técnico                                                   |
+| ------------ | --------------------------- | ------------------------------------------------------------------ |
+| **RNF 01.1** | Seguridad en contraseñas    | Las contraseñas deben cifrarse en la BD mediante bcrypt.           |
+| **RNF 02.1** | Disponibilidad del Sistema  | La plataforma debe estar operativa el 99% del tiempo.              |
+| **RNF 03.1** | Tiempos de Respuesta        | Cualquier carga de Kanban debe tardar menos de 2s.                 |
+| **RNF 04.1** | Interfaces Responsivas      | La UI debe adaptarse a PC y Laptops mediante CSS.                  |
+| **RNF 05.1** | Respuestas de IA Asíncronas | El uso de IA no debe congelar la página (uso de Async/Await).      |
+| **RNF 06.1** | Aislamiento de Privacidad   | Los datos de un equipo son invisibles para otros (Validación JWT). |
+
+---
+
+## 4. Casos de Uso
+
+| Código | Caso de Uso                    | Actor      |
+| ------ | ------------------------------ | ---------- |
+| CU-01  | Gestionar Equipos              | Instructor |
+| CU-02  | Tablero de Tareas Kanban       | Aprendiz   |
+| CU-03  | Interactuar con IA (Historias) | Aprendiz   |
+| CU-04  | Interactuar con IA (Resúmenes) | Instructor |
+
+### 4.1 Diagramas de Comportamiento (UML)
+
+**Figura 1. Diagrama de Casos de Uso**
+![Casos de Uso](./imagenes/Diagrama%20de%20Casos%20de%20Uso.png)
+
+**Figura 2. Diagrama de Secuencia – Inicio de sesión (RF02)**
+![Secuencia Inicio de Sesion](<./imagenes/Diagrama%20de%20Secuencia-Inicio%20de%20sesion%20(RF02).png>)
+
+**Figura 3. Diagrama de Secuencia – Finalizar tarea con evidencia (RF06/RF07)**
+![Secuencia Finalizar Tarea](<./imagenes/Diagrama%20de%20Secuencia-Finalizar%20tarea%20con%20evidencia%20(RF06-RF07).png>)
+
+**Figura 4. Diagrama de Secuencia – Generación de historia con IA (RF08)**
+![Secuencia Generacion Historia IA](<./imagenes/Diagrama%20de%20Secuencia-Generacion%20de%20historia%20con%20IA%20(RF08).png>)
+
+**Figura 5. Diagrama de Actividades – Ciclo de vida de una tarea**
+![Actividades Ciclo Vida Tarea](./imagenes/Diargama%20de%20actividades-Ciclo%20de%20vida%20de%20una%20tarea.png)
+
+**Figura 6. Diagrama de Estados – Tarea Kanban**
+![Estados Tarea Kanban](./imagenes/Diagrama%20de%20Estados%20Tarea%20Kanban.png)
+
+---
+
+## 5. Modelo de Datos (PostgreSQL)
+
+El sistema cuenta con las siguientes entidades relacionales:
+
+1. `equipos`: id, nombre, fecha_creacion
+2. `usuarios`: id, nombre, correo, password, rol, equipo_id
+3. `proyectos`: id, titulo, descripcion, equipo_id
+4. `tareas`: id, titulo, descripcion, estado, fecha_limite, proyecto_id, aprendiz_id
+5. `evidencias`: id, tipo, url_archivo, tarea_id
+
+### 5.1 Diagramas de Estructura (UML)
+
+**Figura 7. Diagrama Entidad-Relación (PostgreSQL)**
+![Diagrama ER](<./imagenes/Diagrama%20Entidad-Relacion%20(PostgreSQL).png>)
+
+**Figura 8. Diagrama de Clases**
+![Diagrama de Clases](./imagenes/Diagrama%20de%20Clases.png)
+
+**Figura 9. Diagrama de Componentes / Arquitectura**
+![Diagrama Arquitectura](./imagenes/Diagrama%20de%20Componentes-Arquitectura.png)
+
+---
+
+## 6. Plan de Pruebas Inicial
+
+| ID Prueba | Escenario                     | Resultado Esperado                |
+| --------- | ----------------------------- | --------------------------------- |
+| **P-01**  | Finalizar tarea sin evidencia | Error: "Debe adjuntar evidencia". |
+| **P-02**  | Llamar IA sin texto           | Error: "El texto es obligatorio". |
+| **P-03**  | Instructor ve tablero         | Carga de tareas correcta.         |
+| **P-04**  | Registro de correo duplicado  | Fallo en BD controlado.           |
