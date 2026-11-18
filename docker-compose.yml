@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: seguimiento-proyectos-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: sena_user
+      POSTGRES_PASSWORD: sena_password
+      POSTGRES_DB: seguimiento_proyectos_sena
+    ports:
+      - "5432:5432"
+    volumes:
+      - C:/Users/diazf/Documents/DOCKER/seguimiento-proyectos-postgres:/var/lib/postgresql/data
