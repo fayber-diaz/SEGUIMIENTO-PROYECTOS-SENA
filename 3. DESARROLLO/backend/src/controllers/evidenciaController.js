@@ -37,17 +37,17 @@ const getEvidenciaById = async (req, res) => {
 
 // Crear una nueva evidencia
 const createEvidencia = async (req, res) => {
-    const { tarea_id, url_archivo, descripcion } = req.body;
-    if (!tarea_id || !url_archivo) {
-        return res.status(400).json({ error: 'El tarea_id y la url_archivo son obligatorios.' });
+    const { tipo, url_archivo, tarea_id } = req.body;
+    if (!tipo || !url_archivo || !tarea_id) {
+        return res.status(400).json({ error: 'El tipo, url_archivo y tarea_id son obligatorios.' });
     }
 
     try {
         const result = await pool.query(
-            `INSERT INTO evidencias (tarea_id, url_archivo, descripcion)
+            `INSERT INTO evidencias (tipo, url_archivo, tarea_id)
              VALUES ($1, $2, $3)
              RETURNING *`,
-            [tarea_id, url_archivo, descripcion || null]
+            [tipo, url_archivo, tarea_id]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {

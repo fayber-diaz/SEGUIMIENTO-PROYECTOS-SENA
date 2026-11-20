@@ -37,17 +37,17 @@ const getTareaById = async (req, res) => {
 
 // Crear una nueva tarea
 const createTarea = async (req, res) => {
-    const { titulo, descripcion, estado, proyecto_id, usuario_id } = req.body;
+    const { titulo, descripcion, estado, fecha_limite, proyecto_id, aprendiz_id } = req.body;
     if (!titulo || !proyecto_id) {
         return res.status(400).json({ error: 'El título y el proyecto_id son obligatorios.' });
     }
 
     try {
         const result = await pool.query(
-            `INSERT INTO tareas (titulo, descripcion, estado, proyecto_id, usuario_id)
-             VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO tareas (titulo, descripcion, estado, fecha_limite, proyecto_id, aprendiz_id)
+             VALUES ($1, $2, $3, $4, $5, $6)
              RETURNING *`,
-            [titulo, descripcion || null, estado || 'Pendiente', proyecto_id, usuario_id || null]
+            [titulo, descripcion || null, estado || 'Por Hacer', fecha_limite || null, proyecto_id, aprendiz_id || null]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -59,7 +59,7 @@ const createTarea = async (req, res) => {
 // Actualizar una tarea (incluye regla de negocio para "Finalizado")
 const updateTarea = async (req, res) => {
     const { id } = req.params;
-    const { titulo, descripcion, estado, usuario_id } = req.body;
+    const { titulo, descripcion, estado, fecha_limite, aprendiz_id } = req.body;
 
     try {
         // Regla de negocio: No se puede pasar a "Finalizado" sin evidencia
@@ -80,10 +80,11 @@ const updateTarea = async (req, res) => {
              SET titulo = COALESCE($1, titulo),
                  descripcion = COALESCE($2, descripcion),
                  estado = COALESCE($3, estado),
-                 usuario_id = COALESCE($4, usuario_id)
-             WHERE id = $5
+                 fecha_limite = COALESCE($4, fecha_limite),
+                 aprendiz_id = COALESCE($5, aprendiz_id)
+             WHERE id = $6
              RETURNING *`,
-            [titulo, descripcion, estado, usuario_id, id]
+            [titulo, descripcion, estado, fecha_limite, aprendiz_id, id]
         );
 
         if (result.rows.length === 0) {
